@@ -35,39 +35,31 @@ angular.module('starter.controllers', [])
 .controller('DeviceCtrl', function($scope, $stateParams, $ionicLoading, DeviceService, RelayService) {
 
     $scope.name = $stateParams.deviceName;
-    $scope.device;
-    $scope.settingsList;
+    $scope.device = {};
+    $scope.relays = {};
+    $scope.settingsList = {};
 
     $ionicLoading.show({
         template: 'Loading...'
     });
 
-    getDevice();
+    DeviceService.getDevice($stateParams.deviceId).success(function(device) {
 
-    function getDevice() {
-        console.log($stateParams.deviceId);
-        DeviceService.getDevice($stateParams.deviceId)
-            .success(function (device) {
-                getRelays(device);
-            })
-            .error(function (error) {
-                $scope.status = 'Unable to get device data: ' + error.message;
-            });
-    }
+        $scope.device = device;
 
-    function getRelays(device) {
-        RelayService.getStates(device)
-            .success(function (relays) {
-                $scope.status = 'Succesfully fetched relay data';
-                
-            })
-            .error(function (error) {
-                $scope.status = 'Unable to get relay data: ' + error.message;
-            });
-    }
+        RelayService.getStates($scope.device).success(function(data) {
+            console.log('States data: ', data);
+        }).error(function(error) {
+            return false;
+        });
 
-    // Event to catch published relay data
+    }).error(function(error) {
+        $ionicLoading.hide();
+        return false;
+    });
+
     spark.onEvent('states', function(e) {
+
         settingsList = [];
         $scope.s = JSON.parse(e.data);
 
@@ -80,7 +72,6 @@ angular.module('starter.controllers', [])
         }
 
         $scope.settingsList = settingsList;
-        $scope.$apply();
 
         $ionicLoading.hide();
     });
@@ -106,23 +97,6 @@ angular.module('starter.controllers', [])
             }
         });
     };
-
-    $scope.refreshItems = function() {
-        DeviceService.getDevice($stateParams.deviceId).success(function(device) {
-
-            $scope.device = device;
-
-            RelayService.getStates($scope.device).success(function(data) {
-                console.log(data);
-            }).error(function(error) {
-                return false;
-            });
-
-        }).error(function(error) {
-            $ionicLoading.hide();
-            return false;
-        });
-    }
 
 })
 
