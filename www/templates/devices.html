@@ -1,0 +1,8 @@
+<ion-view view-title="Devices" hide-back-button="true">
+  <ion-content class="padding">
+    <ion-item ng-repeat="device in devices" item="device" href="#/device/{{device.id}}/{{device.name}}">
+      	{{device.name}}
+      	{{device.id}}
+    </ion-item>
+  </ion-content>
+</ion-view>

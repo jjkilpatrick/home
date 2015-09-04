@@ -1,0 +1,14 @@
+<ion-view view-title="{{name}}">
+  <ion-content class="padding">
+    <p>Device: {{device.name}}</p>
+    <p>Connected: {{device.connected}}</p>
+
+    <ion-toggle ng-repeat="item in settingsList"
+                ng-model="item.checked" 
+                ng-checked="item.checked"
+                ng-click="toggleSelection(item)">
+      {{ item.text }}
+    </ion-toggle>
+
+  </ion-content>
+</ion-view>
