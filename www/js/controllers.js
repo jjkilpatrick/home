@@ -31,7 +31,7 @@ angular.module('starter.controllers', [])
     );
 })
 
-.controller('DeviceCtrl', function($scope, $q, $stateParams, $ionicLoading, DeviceService, RelayService) {
+.controller('DeviceCtrl', function($scope, $q, $stateParams, $ionicLoading, $localstorage, DeviceService, RelayService) {
 
     $scope.name = $stateParams.deviceName;
     $scope.device = {};
@@ -41,17 +41,23 @@ angular.module('starter.controllers', [])
         template: 'Loading...'
     });
 
-    DeviceService.getDevice($stateParams.deviceId).success(function(device) {
-
-        $scope.device = device;
-        RelayService.getStates($scope.device);
-
-    }).error(function(error) {
+    // If localstorage doesn't have settingsList
+    if (typeof $localstorage.get('settingsList') === 'undefined') {
+        DeviceService.getDevice($stateParams.deviceId).success(function(device) {
+            $scope.device = device;
+            RelayService.getStates($scope.device);
+        }).error(function(error) {
+            $ionicLoading.hide();
+            return false;
+        });
+    }
+    // If localstorage does have settingsList
+    else {
+        $scope.settingsList = JSON.parse($localstorage.get('settingsList'));
         $ionicLoading.hide();
-        return false;
-    });
+    }
 
-    spark.onEvent('states', function(e, callback) {
+    spark.onEvent('states', function(e) {
 
         settingsList = [];
         s = JSON.parse(e.data);
@@ -76,12 +82,10 @@ angular.module('starter.controllers', [])
         last = text.charAt(text.length - 1);
         target = first + last;
         state = relay.checked;
-
         states = {
             'true': 'on',
             'false': 'off'
         };
-
         $scope.device.callFunction('relay', target + ':' + states[state], function(err, data) {
             if (err) {
                 console.log('An error occurred:', err);
@@ -91,14 +95,10 @@ angular.module('starter.controllers', [])
         });
     };
 
-    function isEmpty(obj) {
-        for(var prop in obj) {
-            if(obj.hasOwnProperty(prop))
-                return false;
-        }
-
-        return true;
-    }
+    // Update localStorage when leaving view
+    $scope.$on('$locationChangeStart', function(event) {
+        $localstorage.set('settingsList', angular.toJson($scope.settingsList));
+    });
 
 })
 
