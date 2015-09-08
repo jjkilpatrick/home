@@ -12,7 +12,6 @@ angular.module('starter.controllers', [])
     }
 
     $state.go('login');
-
 })
 
 .controller('DevicesCtrl', function($scope, $ionicHistory) {
@@ -99,7 +98,6 @@ angular.module('starter.controllers', [])
     $scope.$on('$locationChangeStart', function(event) {
         $localstorage.set('settingsList', angular.toJson($scope.settingsList));
     });
-
 })
 
 .controller('LoginCtrl', function($rootScope, $scope, LoginService, $ionicPopup, $state) {
