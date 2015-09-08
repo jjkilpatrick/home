@@ -23,7 +23,6 @@ angular.module('starter.controllers', [])
 
     devicesPr.then(
         function(devices) {
-            console.log(devices);
             $scope.devices = devices;
         },
         function(err) {
@@ -32,12 +31,11 @@ angular.module('starter.controllers', [])
     );
 })
 
-.controller('DeviceCtrl', function($scope, $stateParams, $ionicLoading, DeviceService, RelayService) {
+.controller('DeviceCtrl', function($scope, $q, $stateParams, $ionicLoading, DeviceService, RelayService) {
 
     $scope.name = $stateParams.deviceName;
     $scope.device = {};
     $scope.relays = {};
-    $scope.settingsList = {};
 
     $ionicLoading.show({
         template: 'Loading...'
@@ -46,34 +44,29 @@ angular.module('starter.controllers', [])
     DeviceService.getDevice($stateParams.deviceId).success(function(device) {
 
         $scope.device = device;
-
-        RelayService.getStates($scope.device).success(function(data) {
-            console.log('States data: ', data);
-        }).error(function(error) {
-            return false;
-        });
+        RelayService.getStates($scope.device);
 
     }).error(function(error) {
         $ionicLoading.hide();
         return false;
     });
 
-    spark.onEvent('states', function(e) {
+    spark.onEvent('states', function(e, callback) {
 
         settingsList = [];
-        $scope.s = JSON.parse(e.data);
+        s = JSON.parse(e.data);
 
-        for (var key in $scope.s) {
+        for (var key in s) {
             o = {
                 text: key,
-                checked: $scope.s[key]
+                checked: s[key] ? true : false
             };
             settingsList.push(o);
         }
 
         $scope.settingsList = settingsList;
-
         $ionicLoading.hide();
+
     });
 
     // Toggle on and off
@@ -97,6 +90,15 @@ angular.module('starter.controllers', [])
             }
         });
     };
+
+    function isEmpty(obj) {
+        for(var prop in obj) {
+            if(obj.hasOwnProperty(prop))
+                return false;
+        }
+
+        return true;
+    }
 
 })
 
